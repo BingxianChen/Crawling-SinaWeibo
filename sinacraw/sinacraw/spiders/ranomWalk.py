@@ -3,7 +3,7 @@ import re
 import scrapy
 from scrapy.selector import Selector
 from scrapy.http import Request
-from sinacraw.items import DegreeItem, InfoItem
+from sinacraw.items import InfoItem
 
 class random_walk(scrapy.Spider):
     name = "randomWalk"
@@ -16,7 +16,7 @@ class random_walk(scrapy.Spider):
     def parse(self, response):
         selector = Selector(response)
         text0 = selector.xpath('body/div[@class="u"]/div[@class="tip2"]').extract_first()
-        degreeItem = DegreeItem()
+        info = InfoItem()
         if text0:
             num_tweets = re.findall(u'\u5fae\u535a\[(\d+)\]', text0)  # 微博数
             num_follows = re.findall(u'\u5173\u6ce8\[(\d+)\]', text0)  # 关注数
@@ -24,18 +24,17 @@ class random_walk(scrapy.Spider):
             print "微博数",num_tweets[0]
             print "关注数",num_follows[0]
             print "粉丝数",num_fans[0]
-            degreeItem['num_tweets'] = num_tweets[0]
-            degreeItem['num_follows'] = num_follows[0]
-            degreeItem['num_fans'] = num_fans[0]
+            info['num_tweets'] = num_tweets[0]
+            info['num_follows'] = num_follows[0]
+            info['num_fans'] = num_fans[0]
 
         url_information1 = "http://weibo.cn/%s/info" % 1890493665
-        yield degreeItem
-        yield Request(url=url_information1, callback=self.parse1)
+        yield Request(url=url_information1, meta={"item":info},callback=self.parse1)
 
     def parse1(self, response):
 
         selector = Selector(response)
-        infoItem = InfoItem()
+        infoItem = response.meta["item"]
         text1 = ";".join(selector.xpath('body/div[@class="c"]/text()').extract())  # 获取标签里的所有text()
         nickname = re.findall(u'\u6635\u79f0[:|\uff1a](.*?);', text1)  # 昵称
         gender = re.findall(u'\u6027\u522b[:|\uff1a](.*?);', text1)  # 性别

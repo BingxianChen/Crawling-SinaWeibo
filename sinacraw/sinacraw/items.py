@@ -13,13 +13,11 @@ class SinacrawItem(scrapy.Item):
     # name = scrapy.Field()
     pass
 
-class DegreeItem(scrapy.Item):
+class InfoItem(scrapy.Item):
 
     num_tweets = scrapy.Field()  # 微博数
     num_follows = scrapy.Field()  # 关注数
     num_fans = scrapy.Field()  # 粉丝数
-
-class InfoItem(scrapy.Item):
 
     nickname = scrapy.Field()  # 获取标签里的所有text()
     gender = scrapy.Field()  # 昵称
