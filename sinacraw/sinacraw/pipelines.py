@@ -17,7 +17,6 @@ class SinacrawPipeline(object):
         self.coll = db.test
 
     def process_item(self, item, spider):
-        print 1
         if isinstance(item, InfoItem):
             info = dict(item)
             self.coll.insert(info)

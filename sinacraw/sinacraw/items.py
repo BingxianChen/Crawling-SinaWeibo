@@ -15,13 +15,15 @@ class SinacrawItem(scrapy.Item):
 
 class InfoItem(scrapy.Item):
 
+    user_id = scrapy.Field() # 用户ID
     num_tweets = scrapy.Field()  # 微博数
     num_follows = scrapy.Field()  # 关注数
     num_fans = scrapy.Field()  # 粉丝数
 
     nickname = scrapy.Field()  # 获取标签里的所有text()
     gender = scrapy.Field()  # 昵称
-    place = scrapy.Field()  # 地区（包括省份和城市）
+    province = scrapy.Field() # 所在省
+    city = scrapy.Field()  # 所在城市
     signature = scrapy.Field()  # 个性签名
     birthday = scrapy.Field()  # 生日
     sexorientation = scrapy.Field()  # 性取向

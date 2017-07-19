@@ -4,8 +4,9 @@
 #
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/spider-middleware.html
-
+import random
 from scrapy import signals
+from user_agents import agents
 from cookies import cookies
 
 
@@ -19,8 +20,8 @@ class UserAgentMiddleware(object):
     """ 换User-Agent """
 
     def process_request(self, request, spider):
-        request.headers["User-Agent"] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-
+        agent = random.choice(agents)
+        request.headers["User-Agent"] = agent
 
 class SinacrawSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
