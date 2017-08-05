@@ -1,26 +1,35 @@
 # encoding=utf-8
 import re
 import scrapy
-import random
 import datetime
+from collections import deque
 from scrapy.selector import Selector
 from scrapy.http import Request
 from sinacraw.items import InfoItem
 
 class random_walk(scrapy.Spider):
-    name = "randomWalk"
-    next_ID = [6320545592,]
-    temp = 6320545592
+    name = "BFS"
     count = 0
+    scrawl_ID = deque([1890493665,])  # 记录待爬的微博ID
+    finish_ID = set()  # 记录已爬的微博ID
     def start_requests(self):
-        self.count += 1
-        print "start!!!!!!!"
-        next_url = "http://weibo.cn/u/%s" % self.next_ID[-1]
-        yield Request(url=next_url, callback=self.parse)
+        if len(self.scrawl_ID) > 0:
+            ID = self.scrawl_ID.popleft()
+            self.finish_ID.add(ID)
+            url_main = "http://weibo.cn/u/%s" % ID
+            url_fans = "http://weibo.cn/%s/fans" % ID
+            url_follows = "http://weibo.cn/%s/follow" % ID
+            # 将有向图当做无向图处理
+            yield Request(url=url_fans, dont_filter=True, callback=self.parse3)  # 去爬粉丝
+            yield Request(url=url_follows, dont_filter=True, callback=self.parse3)  # 去爬关注人
+            yield Request(url=url_main, meta={"ID":ID}, callback=self.parse)
+
+
 
 
     def parse(self, response):
         selector = Selector(response)
+        ID = response.meta["ID"]
         text0 = selector.xpath('body/div[@class="u"]/div[@class="tip2"]').extract_first()
         info = InfoItem()
         if text0:
@@ -35,25 +44,11 @@ class random_walk(scrapy.Spider):
             if num_fans:
                 info["num_fans"] = int(num_fans[0])
 
-        url_information1 = "http://weibo.cn/%s/info" % self.next_ID[-1]
-        yield Request(url=url_information1, meta={"item":info,"ID":self.next_ID[-1]}, dont_filter=True, callback=self.parse1)
+        url_information1 = "http://weibo.cn/%s/info" % ID
+        yield Request(url=url_information1, meta={"item":info,"ID":ID}, dont_filter=True, callback=self.parse1)
 
 
-        # 将有向图当做无向图处理
-        if random.random() > float(info["num_follows"])/(info["num_follows"] + info["num_fans"]):
-            try:
-                url_fans = "http://weibo.cn/%s/fans" % self.next_ID[-1]
-                yield Request(url=url_fans, dont_filter=True, callback=self.parse3)  # 去爬粉丝
-            except:
-                url_follows = "http://weibo.cn/%s/follow" % self.next_ID[-1]
-                yield Request(url=url_follows, dont_filter=True, callback=self.parse3)  # 去爬关注人
-        else:
-            try:
-                url_follows = "http://weibo.cn/%s/follow" % self.next_ID[-1]
-                yield Request(url=url_follows, dont_filter=True, callback=self.parse3)  # 去爬关注人
-            except:
-                url_fans = "http://weibo.cn/%s/fans" % self.next_ID[-1]
-                yield Request(url=url_fans, dont_filter=True, callback=self.parse3)  # 去爬粉丝
+
 
     def parse1(self, response):
 
@@ -101,27 +96,33 @@ class random_walk(scrapy.Spider):
 
         yield infoItem
 
+        ############循环#########
+        if len(self.scrawl_ID) > 0:
+            ID = self.scrawl_ID.popleft()
+            self.finish_ID.add(ID)
+            url_main = "http://weibo.cn/u/%s" % ID
+            url_fans = "http://weibo.cn/%s/fans" % ID
+            url_follows = "http://weibo.cn/%s/follow" % ID
+            # 将有向图当做无向图处理
+            if len(self.scrawl_ID) < 40000:
+                yield Request(url=url_fans, dont_filter=True, callback=self.parse3)  # 去爬粉丝
+                yield Request(url=url_follows, dont_filter=True, callback=self.parse3)  # 去爬关注人
+            yield Request(url=url_main, meta={"ID":ID}, callback=self.parse)
+
 
 
     def parse3(self, response):
         """ 抓取关注或粉丝的随机用户ID """
         selector = Selector(response)
         text2 = selector.xpath('body//table/tr/td/a/@href').extract()
-        next_urls = []
+
         for elem in text2:
             elem = re.findall('uid=(\d+)', elem)
             if elem:
-                next_urls.append(int(elem[0]))
-
-        self.next_ID.pop()
-        self.next_ID.append(random.choice(next_urls))
-        self.temp = next_urls[0]
-
-        try:
-            next_url = "http://weibo.cn/u/%s" % self.next_ID[-1]
-            yield Request(url=next_url, dont_filter=True, callback=self.parse)
-        except:
-            self.next_ID.pop()
-            self.next_ID.append(self.temp)
-            next_url = "http://weibo.cn/u/%s" % self.temp
-            yield Request(url=next_url, dont_filter=True, callback=self.parse)
+                ID = int(elem[0])
+                if ID not in self.finish_ID:  # 新的ID，如果未爬则加入待爬队列
+                    self.scrawl_ID.append(ID)
+        url_next = selector.xpath(
+            u'body//div[@class="pa" and @id="pagelist"]/form/div/a[text()="\u4e0b\u9875"]/@href').extract()
+        if url_next:
+            yield Request(url="http://weibo.cn%s" % url_next[0], callback=self.parse3)

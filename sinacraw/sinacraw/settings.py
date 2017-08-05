@@ -35,6 +35,10 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 1
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = True
 
+
+# LOG_LEVEL = 'CRITICAL'    # 日志级别
+# LOG_LEVEL = 'ERROR'
+
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
 

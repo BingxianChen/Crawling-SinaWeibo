@@ -14,7 +14,7 @@ class SinacrawPipeline(object):
         client = MongoClient("115.28.218.152",27017)
         client.craw.authenticate("xuan","11001724")
         db = client.craw
-        self.coll = db.test
+        self.coll = db.BFS
 
     def process_item(self, item, spider):
         if isinstance(item, InfoItem):
