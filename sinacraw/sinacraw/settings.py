@@ -38,6 +38,7 @@ COOKIES_ENABLED = True
 
 # LOG_LEVEL = 'CRITICAL'    # 日志级别
 # LOG_LEVEL = 'ERROR'
+LOG_LEVEL = 'DEBUG'
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False

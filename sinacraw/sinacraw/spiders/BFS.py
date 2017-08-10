@@ -7,10 +7,10 @@ from scrapy.selector import Selector
 from scrapy.http import Request
 from sinacraw.items import InfoItem
 
-class random_walk(scrapy.Spider):
+class bfs_walk(scrapy.Spider):
     name = "BFS"
     count = 0
-    scrawl_ID = deque([1890493665,])  # 记录待爬的微博ID
+    scrawl_ID = deque([3762709983,])  # 记录待爬的微博ID
     finish_ID = set()  # 记录已爬的微博ID
     def start_requests(self):
         if len(self.scrawl_ID) > 0:
@@ -22,7 +22,7 @@ class random_walk(scrapy.Spider):
             # 将有向图当做无向图处理
             yield Request(url=url_fans, dont_filter=True, callback=self.parse3)  # 去爬粉丝
             yield Request(url=url_follows, dont_filter=True, callback=self.parse3)  # 去爬关注人
-            yield Request(url=url_main, meta={"ID":ID}, callback=self.parse)
+            yield Request(url=url_main, meta={"ID":ID}, dont_filter=True, callback=self.parse)
 
 
 
@@ -104,10 +104,10 @@ class random_walk(scrapy.Spider):
             url_fans = "http://weibo.cn/%s/fans" % ID
             url_follows = "http://weibo.cn/%s/follow" % ID
             # 将有向图当做无向图处理
-            if len(self.scrawl_ID) < 40000:
+            if len(self.scrawl_ID) < 4:
                 yield Request(url=url_fans, dont_filter=True, callback=self.parse3)  # 去爬粉丝
                 yield Request(url=url_follows, dont_filter=True, callback=self.parse3)  # 去爬关注人
-            yield Request(url=url_main, meta={"ID":ID}, callback=self.parse)
+            yield Request(url=url_main, meta={"ID":ID}, dont_filter=True, callback=self.parse)
 
 
 
